@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Fresh Milk Order Form</title>
+    <style>
+        /* Your CSS styles here */
+    </style>
+</head>
+<body>
+    <div class="container" id="shoppingPage">
+        <h1>Order Farm Fresh Milk</h1>
+        <div class="product">
+            <img src="https://drive.google.com/uc?id=1vDufq8tkqsuyL9wiZbT2GN5pNugA-AZj" alt="Farm Fresh Full Cream Milk">
+            <div class="product-info">
+                <h2>Farm Fresh Full Cream Milk</h2>
+                <p>Price: RM 2.00</p>
+                <p>Quantity: <input type="number" id="fullCreamQuantity" value="1" min="1"></p>
+                <button onclick="addToCart('Farm Fresh Full Cream Milk', 2.00, document.getElementById('fullCreamQuantity').value)">Add to Cart</button>
+            </div>
+        </div>
+        <div class="product">
+            <img src="https://drive.google.com/uc?id=1b9W98jSJ270udPQx7n4BrsKz5rH1am2-" alt="Farm Fresh Chocolate Milk">
+            <div class="product-info">
+                <h2>Farm Fresh Chocolate Milk</h2>
+                <p>Price: RM 2.00</p>
+                <p>Quantity: <input type="number" id="chocolateQuantity" value="1" min="1"></p>
+                <button onclick="addToCart('Farm Fresh Chocolate Milk', 2.00, document.getElementById('chocolateQuantity').value)">Add to Cart</button>
+            </div>
+        </div>
+        <div class="cart">
+            <h2>Shopping Cart</h2>
+            <ul id="cartItems"></ul>
+            <p>Total: RM <span id="totalAmount">0.00</span></p>
+        </div>
+        <div class="checkout">
+            <button onclick="proceedToPayment()">Proceed to Payment</button>
+        </div>
+    </div>
+
+    <div class="container" id="paymentPage">
+        <h1>Complete Your Payment</h1>
+        <div class="payment-info">
+            <p>Scan the QR code to make a payment:</p>
+            <img src="fake-qr-code.png" alt="QR Code for Payment">
+        </div>
+        <div class="upload-receipt">
+            <p>Upload your payment receipt:</p>
+            <input type="file" id="receipt">
+        </div>
+        <div class="checkout">
+            <button onclick="submitOrder()">Submit Order</button>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let total = 0;
+
+        function addToCart(productName, price, quantity) {
+            const item = {
+                name: productName,
+                price: price,
+                quantity: Number(quantity)
+            };
+            cart.push(item);
+            total += item.price * item.quantity;
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cartItems');
+            cartItems.innerHTML = '';
+            cart.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.name} - RM ${item.price} x ${item.quantity}`;
+                cartItems.appendChild(li);
+            });
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+        }
+
+        function proceedToPayment() {
+            document.getElementById('shoppingPage').style.display = 'none';
+            document.getElementById('paymentPage').style.display = 'block';
+        }
+
+        async function submitOrder() {
+            const formUrl = 'https://script.google.com/a/macros/siswa.ukm.edu.my/s/AKfycbwS3z3RUrEWpnabNjZk-FISHAt1lC9HFagb9HVCOjc_bKwR-US-AJ0IApkmwvif32Mi/exec'; // Replace with your Google Apps Script URL
+            const form = new FormData();
+
+            form.append('cart', JSON.stringify(cart));
+            form.append('total', total.toFixed(2));
+
+            const receiptFile = document.getElementById('receipt').files[0];
+            if (receiptFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    form.append('receipt', e.target.result.split(',')[1]); // Append base64 encoded file
+                    sendData(formUrl, form);
+                };
+                reader.readAsDataURL(receiptFile);
+            } else {
+                alert('Please upload a payment receipt.');
+                return;
+            }
+        }
+
+        async function sendData(url, form) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: form,
+                    mode: 'cors'
+                });
+                if (response.ok) {
+                    alert('Order submitted successfully!');
+                    location.reload();
+                } else {
+                    throw new Error('Failed to submit order');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to submit order.');
+            }
+        }
+    </script>
+</body>
+</html>
